@@ -17,11 +17,13 @@ import { loadRecent, loadSession, saveSession } from '@renderer/app/session';
 import { installShortcuts } from '@renderer/app/shortcuts';
 import { applyUiTheme } from '@renderer/editor/theme';
 import {
+  appVersion,
   describeError,
   isTauri,
   onCloseRequested,
   onOpenPaths,
   saveState,
+  setWindowTitle,
   startupPaths,
 } from '@renderer/ipc';
 import { useDocs } from '@renderer/store/documents';
@@ -263,6 +265,15 @@ export function App() {
       void saveSession(buildSessionState());
     }, 15_000);
     return () => window.clearInterval(timer);
+  }, []);
+
+  // 13. The title bar carries the running version, so a screenshot in a bug
+  // report is enough to tell which build it came from.
+  useEffect(() => {
+    void (async () => {
+      const version = await appVersion();
+      await setWindowTitle(version ? `Npcc ${version}` : 'Npcc');
+    })();
   }, []);
 
   return (

@@ -1,3 +1,4 @@
+import { getVersion } from '@tauri-apps/api/app';
 import { invoke } from '@tauri-apps/api/core';
 import { emitTo, listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -190,6 +191,21 @@ export async function toggleFullscreen(): Promise<void> {
   const win = getCurrentWindow();
   const isFullscreen = await win.isFullscreen();
   await win.setFullscreen(!isFullscreen);
+}
+
+/**
+ * Version baked into the bundle by `tauri.conf.json`. Read at runtime so the
+ * title bar and the About box cannot drift from the shipped build.
+ */
+export async function appVersion(): Promise<string> {
+  if (!isTauri) return '';
+  return getVersion();
+}
+
+/** The renderer owns the window title, so the version is never hard-coded. */
+export async function setWindowTitle(title: string): Promise<void> {
+  if (!isTauri) return;
+  await getCurrentWindow().setTitle(title);
 }
 
 export async function listPlugins(): Promise<PluginManifest[]> {

@@ -95,11 +95,15 @@ $signingConfig = Join-Path $root 'src-tauri\tauri.signing.json'
 
 try {
     if (-not $SkipBuild) {
-        # The linker cannot replace a binary that is running. Fail with a clear
-        # message instead of rustc's "os error 5: access denied".
-        $running = @(Get-Process -Name 'npcc' -ErrorAction SilentlyContinue)
-        if ($running.Count -gt 0) {
-            throw 'npcc.exe is still running. Close it and run the script again; the linker cannot overwrite a running binary.'
+        # The linker cannot replace a binary that is running. Only a process
+        # started from the build output blocks the build -- an installed copy
+        # running from %LOCALAPPDATA% is harmless and must not be killed, the
+        # user may be editing something in it.
+        $buildExe = Join-Path $root 'src-tauri\target\release\npcc.exe'
+        $blocking = @(Get-Process -Name 'npcc' -ErrorAction SilentlyContinue |
+            Where-Object { $_.Path -eq $buildExe })
+        if ($blocking.Count -gt 0) {
+            throw 'The built npcc.exe is still running. Close it and run the script again; the linker cannot overwrite a running binary.'
         }
 
         # Call the local Tauri CLI directly instead of `npm run tauri -- build

@@ -29,7 +29,7 @@ import { playMacro, toggleMacroRecording } from '@renderer/editor/macro';
 import { selectAllMatches } from '@renderer/editor/multicursor';
 import { toggleOverwrite } from '@renderer/editor/overwrite';
 import { getActiveView } from '@renderer/editor/stateRegistry';
-import { showMessage, toggleFullscreen, openFolder } from '@renderer/ipc';
+import { appVersion, showMessage, toggleFullscreen, openFolder } from '@renderer/ipc';
 import { useMacro } from '@renderer/store/macro';
 import { useSettings } from '@renderer/store/settings';
 import { useUi } from '@renderer/store/ui';
@@ -277,10 +277,11 @@ export async function runCommand(commandId: string): Promise<void> {
       ui.setPluginsOpen(true);
       return;
 
-    case 'help.about':
+    case 'help.about': {
+      const version = await appVersion();
       await showMessage(
         [
-          'Npcc 0.1.0',
+          `Npcc ${version || 'dev'}`,
           '轻量文本编辑器（Tauri 2 + React + CodeMirror 6）',
           '',
           `默认编码 ${DEFAULT_SETTINGS.encoding.toUpperCase()}，默认换行 ${DEFAULT_SETTINGS.eol.toUpperCase()}`,
@@ -292,6 +293,7 @@ export async function runCommand(commandId: string): Promise<void> {
         '关于 Npcc',
       );
       return;
+    }
     default:
       // Unknown ids are ignored: a stale menu item should never crash the UI.
       return;
