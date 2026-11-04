@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "plugin",
+  "description": "Plugin windows run in their own webview without file system plugin permissions. They listen and emit events, which is how the RPC bridge reaches the editor.",
+  "windows": ["plugin-*"],
+  "permissions": ["core:default"]
+}

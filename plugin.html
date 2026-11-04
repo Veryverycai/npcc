@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Npcc 插件</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #1f1f22;
+        --panel: #26262b;
+        --border: #3a3a40;
+        --fg: #e6e6ea;
+        --fg-muted: #9a9aa3;
+        --accent: #4f8cff;
+        font-family: 'Segoe UI', 'Microsoft YaHei', system-ui, sans-serif;
+        font-size: 13px;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+      }
+      main {
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 15px;
+      }
+      h2 {
+        margin: 0 0 6px;
+        font-size: 12px;
+        color: var(--fg-muted);
+        font-weight: 600;
+      }
+      section {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--panel);
+        padding: 10px 12px;
+      }
+      dl {
+        display: grid;
+        grid-template-columns: 82px 1fr;
+        gap: 4px 10px;
+        margin: 0;
+      }
+      dt {
+        color: var(--fg-muted);
+      }
+      dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
+      ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+      button {
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        background: transparent;
+        color: var(--fg);
+        padding: 3px 10px;
+        margin-right: 6px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      button:hover {
+        border-color: var(--accent);
+      }
+      pre {
+        margin: 8px 0 0;
+        max-height: 220px;
+        overflow: auto;
+        padding: 8px;
+        border-radius: 5px;
+        background: rgba(0, 0, 0, 0.28);
+        font-family: Consolas, 'Courier New', monospace;
+        font-size: 12px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .muted {
+        color: var(--fg-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main id="plugin-root">
+      <h1>正在加载插件…</h1>
+      <p class="muted">插件窗口通过事件通道与主界面通信，不具备文件系统权限。</p>
+    </main>
+    <script type="module" src="/src/plugin/main.ts"></script>
+  </body>
+</html>

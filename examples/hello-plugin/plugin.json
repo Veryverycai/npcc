@@ -1,0 +1,16 @@
+{
+  "id": "hello-plugin",
+  "name": "Hello Npcc",
+  "version": "0.1.0",
+  "contributes": {
+    "commands": [
+      {
+        "id": "hello.about",
+        "title": "Hello：显示关于对话框",
+        "command": "help.about"
+      }
+    ],
+    "languages": [],
+    "themes": []
+  }
+}
