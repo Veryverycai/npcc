@@ -214,7 +214,7 @@ export async function saveDocument(docId: string, saveAs = false): Promise<boole
       content,
       encoding: doc.encoding,
       eol: doc.eol,
-      backup: true,
+      backup: useSettings.getState().settings.backupOnSave,
     });
     const name = baseName(result.path);
     const languageId = doc.languageId === 'plaintext' ? detectLanguage(name) : doc.languageId;

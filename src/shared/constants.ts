@@ -58,6 +58,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   recentLimit: 5,
   largeFileWarnBytes: LARGE_FILE_PREVIEW_BYTES,
   searchExclude: 'node_modules,.git,dist,out,target,.next,.cache',
+  backupOnSave: false,
 };
 
 export const SEARCH_PROGRESS_EVENT = 'search://progress';

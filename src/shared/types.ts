@@ -114,6 +114,8 @@ export interface AppSettings {
   recentLimit: number;
   largeFileWarnBytes: number;
   searchExclude: string;
+  /** Keep a `<name>.bak` copy of the previous content on every save. */
+  backupOnSave: boolean;
 }
 
 export interface SessionTab {

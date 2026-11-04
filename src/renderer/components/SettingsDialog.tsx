@@ -229,6 +229,14 @@ export function SettingsDialog() {
                 }
               />
             </label>
+            <label className="settings-row">
+              <span>保存时保留 .bak 备份</span>
+              <input
+                type="checkbox"
+                checked={settings.backupOnSave}
+                onChange={(event) => update({ backupOnSave: event.target.checked })}
+              />
+            </label>
             <label className="settings-row settings-row-wide">
               <span>搜索默认忽略</span>
               <input

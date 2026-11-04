@@ -136,7 +136,8 @@ scripts/with-msvc.ps1    带 MSVC 环境变量执行任意命令
 - 配置文件在 `appConfigDir()`（Windows 为 `%APPDATA%\com.npcc.app`）下的 `settings.json` /
   `session.json` / `recent.json`，均带 `schemaVersion`。
 - 关闭窗口时先把会话写入 `session.json` 再退出，启动时还原标签、光标与未命名草稿。
-- 写盘使用 "临时文件 + rename" 原子替换；可选 `.bak` 备份。
+- 写盘使用 "临时文件 + rename" 原子替换；`设置 → 文件与搜索 → 保存时保留 .bak 备份` 默认关闭，
+  打开后每次保存会把上一版内容复制成同目录的 `<文件名>.bak`（只保留一代）。
 - 超大文件：>20 MB 只读预览，>50 MB 拒绝打开，>5 MB 关闭语法高亮与折叠。
 - 插件窗口拥有独立 capability（无文件系统权限），只能通过事件 RPC 请求编辑器操作；
   清单为声明式（`commands` / `languages` / `themes`），不执行第三方脚本。
