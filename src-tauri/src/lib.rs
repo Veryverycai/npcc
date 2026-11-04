@@ -21,6 +21,56 @@ pub fn file_args() -> Vec<String> {
         .collect()
 }
 
+/// Windows paints a taskbar button from the window's big icon (`ICON_BIG`).
+/// Tauri only ever sets the small one, so the button falls back to the icon the
+/// shell cached for `npcc.exe` -- and that cache survives an upgrade, leaving the
+/// previous version's artwork in the taskbar while the exe on disk is new.
+/// Attaching the big icon on every launch keeps the taskbar tied to the binary
+/// that is actually running.
+#[cfg(windows)]
+fn install_taskbar_icon(window: &tauri::WebviewWindow) -> tauri::Result<()> {
+    use std::ffi::c_void;
+    use std::os::windows::ffi::OsStrExt;
+
+    #[link(name = "shell32")]
+    extern "system" {
+        fn ExtractIconExW(
+            file: *const u16,
+            index: i32,
+            large: *mut *mut c_void,
+            small: *mut *mut c_void,
+            count: u32,
+        ) -> u32;
+    }
+
+    #[link(name = "user32")]
+    extern "system" {
+        fn SendMessageW(hwnd: *mut c_void, msg: u32, wparam: usize, lparam: isize) -> isize;
+    }
+
+    const WM_SETICON: u32 = 0x0080;
+    const ICON_BIG: usize = 1;
+
+    let exe: Vec<u16> = std::env::current_exe()?
+        .as_os_str()
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+    let mut large: *mut c_void = std::ptr::null_mut();
+
+    // Index 0 is the icon the shell shows for the exe, so this cannot drift from
+    // the artwork baked in at build time. Passing a null small-icon slot keeps
+    // the call from handing back a second handle nobody frees.
+    let extracted = unsafe { ExtractIconExW(exe.as_ptr(), 0, &mut large, std::ptr::null_mut(), 1) };
+    if extracted == 0 || large.is_null() {
+        return Ok(());
+    }
+
+    let hwnd = window.hwnd()?;
+    unsafe { SendMessageW(hwnd.0, WM_SETICON, ICON_BIG, large as isize) };
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -40,6 +90,17 @@ pub fn run() {
             }
         }))
         .plugin(tauri_plugin_dialog::init())
+        // The Windows taskbar reads ICON_BIG, which Tauri leaves empty; see
+        // install_taskbar_icon for why that matters after an upgrade.
+        .setup(|app| {
+            #[cfg(windows)]
+            if let Some(window) = app.get_webview_window("main") {
+                if let Err(error) = install_taskbar_icon(&window) {
+                    eprintln!("could not attach the taskbar icon: {error}");
+                }
+            }
+            Ok(())
+        })
         .manage(Arc::new(SearchRegistry::default()))
         .invoke_handler(tauri::generate_handler![
             commands::file::read_file,
