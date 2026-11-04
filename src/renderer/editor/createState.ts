@@ -31,6 +31,7 @@ import { multiCursorExtension } from './multicursor';
 import { multiRangePaint } from './multiRangePaint';
 import { overwriteExtension } from './overwrite';
 import { selectionEdge } from './selectionEdge';
+import { textDrag } from './textDrag';
 import { editorTheme } from './theme';
 import { whitespacePlugin } from './whitespace';
 
@@ -88,6 +89,7 @@ function baseExtensions(settings: AppSettings, bigFile: boolean): Extension[] {
     multiCursorExtension(),
     multiRangePaint(),
     overwriteExtension(),
+    textDrag(),
     selectionEdge(),
     updateBridge,
     keymap.of([

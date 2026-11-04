@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import type { RecentEntry } from '@shared/types';
 import type { FindQuery } from '@renderer/editor/find';
 import type { FindAllResult } from '@renderer/editor/findAll';
 
@@ -32,6 +33,8 @@ interface UiStore {
   findQuery: FindQuery;
   /** Result of the most recent "find all" run, shown in the bottom pane. */
   findResults: FindAllResult | null;
+  /** Newest-first list rendered by the File menu's "最近打开" flyout. */
+  recent: RecentEntry[];
   findResultsOpen: boolean;
   findResultsHeight: number;
   openFind: (replace?: boolean) => void;
@@ -67,6 +70,7 @@ export const useUi = create<UiStore>((set) => ({
   diffTargetId: null,
   findQuery: EMPTY_FIND_QUERY,
   findResults: null,
+  recent: [],
   findResultsOpen: false,
   findResultsHeight: 220,
   openFind: (replace = false) => set({ findOpen: true, findReplaceMode: replace }),

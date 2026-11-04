@@ -6,7 +6,17 @@ Rust 侧负责全部文件系统访问、编码探测/转换、跨文件搜索�
 ## 下载
 
 Windows x64 安装包见 [Releases](https://github.com/Veryverycai/npcc/releases)：
-`Npcc_0.1.0_x64-setup.exe`（NSIS，按当前用户安装）或 `Npcc_0.1.0_x64_en-US.msi`。
+`Npcc_0.1.1_x64-setup.exe`（NSIS，按当前用户安装）或 `Npcc_0.1.1_x64_en-US.msi`。
+
+## 安装与升级
+
+- NSIS 安装包按当前用户装到 `%LOCALAPPDATA%\Npcc`，不需要管理员权限。
+- 安装新版本时会先静默卸载旧版本再装新文件（`src-tauri/windows/hooks.nsh` 的
+  `NSIS_HOOK_PREINSTALL`：跑旧 `uninstall.exe /S _?=$INSTDIR`，随后清空旧目录）。这样旧 exe、
+  旧插件 DLL 与旧图标资源不会残留，Explorer 也不会继续显示缓存里的旧图标。MSI 走 WiX 的
+  `MajorUpgrade`，效果相同。
+- 用户数据（`settings.json` / `session.json` / `recent.json`）在 `%APPDATA%\com.npcc.app`，
+  不在安装目录里，升级不会丢。
 
 ## 功能速览
 
@@ -15,7 +25,9 @@ Windows x64 安装包见 [Releases](https://github.com/Veryverycai/npcc/releases
   可在「视图 → 配色模板」或设置对话框切换，选择会持久化。
 - 选中任意单词时自动高亮其余相同文本（设置里可关闭），`Ctrl+Shift+L` 可直接多光标选中全部匹配。
 - 文件拖入窗口即打开，带落区提示，可一次拖入多个；第二实例与命令行参数也会开成标签。
-- 「文件 → 最近打开」固定 5 条，欢迎页同步展示最近文件；列表存在 `recent.json`。
+- 关闭窗口即保存会话（含未命名草稿），下次启动恢复上次的标签、光标与活动文档。
+- 选中文字可直接拖到文档内别的行；菜单栏由渲染层绘制，跟随当前配色模板。
+- 「文件 → 最近打开」默认列 5 条（设置里可调到 50），欢迎页同步展示最近文件；列表存在 `recent.json`。
 - 查找面板可「本文档全部」或「打开的文档全部」，结果在编辑器下方分屏列出（可拖动边界调高），
   点击行号即跳转；菜单项为「搜索 → 在本文档 / 在所有打开文档中查找全部」（前者 `Ctrl+Shift+E`）。
 - 编码探测/转换（UTF-8/BOM、GBK、GB18030、UTF-16、Latin-1）、EOL 转换、跨文件搜索、书签、宏、
@@ -23,11 +35,11 @@ Windows x64 安装包见 [Releases](https://github.com/Veryverycai/npcc/releases
 
 ## 环境要求
 
-| 组件 | 版本 / 说明 |
-| --- | --- |
-| Node.js | 20+ |
-| Rust | stable `x86_64-pc-windows-msvc`（`rustup` 安装） |
-| MSVC Build Tools | 需勾选 "使用 C++ 的桌面开发"（含 Windows 11 SDK） |
+| 组件             | 版本 / 说明                                                 |
+| ---------------- | ----------------------------------------------------------- |
+| Node.js          | 20+                                                         |
+| Rust             | stable `x86_64-pc-windows-msvc`（`rustup` 安装）            |
+| MSVC Build Tools | 需勾选 "使用 C++ 的桌面开发"（含 Windows 11 SDK）           |
 | WebView2 Runtime | Win11 与 Win10 21H2+ 预装；缺失时先装 Edge WebView2 Runtime |
 
 ## 常用命令
@@ -62,6 +74,36 @@ powershell -NoProfile -ExecutionPolicy Bypass `
   -File .\scripts\with-msvc.ps1 npm.cmd run tauri build
 ```
 
+## 代码签名
+
+```powershell
+.\scripts\sign-build.ps1                    # 构建 + 签名 + 校验
+.\scripts\sign-build.ps1 -SkipBuild         # 只签已有产物
+.\scripts\sign-build.ps1 -SkipBuild -Trust  # 再把证书装进本机信任存储
+```
+
+脚本会定位 Windows SDK 的 `signtool.exe`，复用或新建一张 `CN=Veryverycai, O=Npcc, C=CN`
+的自签名代码签名证书（私钥只留在当前用户证书存储，不入库），把公钥导出到
+`certs/npcc-selfsigned.cer`，再通过 `--config` 把指纹交给 Tauri，让 `npcc.exe`、NSIS setup 与
+MSI 在打包时一并签名，最后逐个校验。
+
+### 让本机彻底信任
+
+`-Trust` 会把公钥装进当前用户的「受信任的根证书颁发机构」和「受信任的发布者」两个存储
+（`certutil -user -addstore`，逐用户、不需要管理员权限）。之后验签结果从 `UnknownError`
+变成 `Valid`，`signtool verify /pa` 也能通过，UAC 和安全属性里显示的是发布者名称而不是
+「未知发布者」。
+
+边界（很重要）：
+
+- 只影响当前 Windows 账户。其它账户、其它机器要各自执行一次，或由管理员装进
+  `LocalMachine\Root`（需要提权）。
+- SmartScreen 看的是微软侧的信誉积分，不是本机信任。签名能保证的是“文件未被篡改 + 发布者可
+  识别”，但新证书首次运行仍可能被拦，提示“仍要运行”。
+- 私钥以可导出状态存在证书存储里（CI 需要），拿到它的人就能冒充这个发布者。因此这套做法只
+  适合自用与局域网分发；面向公众分发仍应购买受信任的代码签名证书，用 `-Subject` 指定即可，
+  脚本其余部分不用改。
+
 ## 目录结构
 
 ```
@@ -84,6 +126,7 @@ scripts/with-msvc.ps1    带 MSVC 环境变量执行任意命令
 
 - 配置文件在 `appConfigDir()`（Windows 为 `%APPDATA%\com.npcc.app`）下的 `settings.json` /
   `session.json` / `recent.json`，均带 `schemaVersion`。
+- 关闭窗口时先把会话写入 `session.json` 再退出，启动时还原标签、光标与未命名草稿。
 - 写盘使用 "临时文件 + rename" 原子替换；可选 `.bak` 备份。
 - 超大文件：>20 MB 只读预览，>50 MB 拒绝打开，>5 MB 关闭语法高亮与折叠。
 - 插件窗口拥有独立 capability（无文件系统权限），只能通过事件 RPC 请求编辑器操作；
@@ -92,7 +135,8 @@ scripts/with-msvc.ps1    带 MSVC 环境变量执行任意命令
 ## 已知限制
 
 - 首版只出 Windows x64 的 NSIS / MSI 安装包，便携版待补。
-- 安装包未签名，首次运行会触发 SmartScreen 提示，需手动"仍要运行"。
+- 安装包用仓库脚本生成的自签名证书签名。跑过 `-Trust` 的机器上发布者显示正常，但 SmartScreen
+  仍按微软侧信誉决定是否拦截；面向公众分发建议换受信任证书（见上一节）。
 - 分屏为只读镜像（内容同步、滚动与光标独立），双向编辑尚未开放。
 
 ## 许可证

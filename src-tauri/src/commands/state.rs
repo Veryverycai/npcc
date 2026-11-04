@@ -1,9 +1,7 @@
-use serde::Deserialize;
 use serde_json::Value;
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
 use crate::error::AppError;
-use crate::menu::RecentMenuState;
 use crate::services::store;
 
 /// The renderer owns the state schema; Rust only persists it. That keeps a
@@ -29,33 +27,4 @@ pub fn config_dir(app: AppHandle) -> Result<String, AppError> {
 #[tauri::command]
 pub fn startup_paths() -> Vec<String> {
     crate::file_args()
-}
-
-/// One label for a "最近打开" slot. The renderer owns the paths; the menu only
-/// shows names, so a stale entry can never open the wrong file.
-#[derive(Deserialize)]
-pub struct RecentMenuEntry {
-    pub name: String,
-}
-
-/// Relabels the five File-menu slots; `entries` is already ordered newest first.
-#[tauri::command]
-pub fn set_recent_files(app: AppHandle, entries: Vec<RecentMenuEntry>) -> Result<(), AppError> {
-    let state = app.state::<RecentMenuState>();
-    let slots = state
-        .0
-        .lock()
-        .map_err(|err| AppError::Io(err.to_string()))?;
-    for (index, slot) in slots.iter().enumerate() {
-        let result = match entries.get(index) {
-            Some(entry) => slot
-                .set_text(format!("{}. {}", index + 1, entry.name))
-                .and_then(|_| slot.set_enabled(true)),
-            None => slot
-                .set_text("（空）")
-                .and_then(|_| slot.set_enabled(false)),
-        };
-        result.map_err(|err| AppError::Io(err.to_string()))?;
-    }
-    Ok(())
 }

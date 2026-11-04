@@ -40,9 +40,6 @@ export const EOL_ORDER: Eol[] = ['lf', 'crlf', 'cr'];
 export const SEARCH_MAX_RESULTS = 5000;
 export const SEARCH_MAX_PER_FILE = 200;
 
-/** Slots of the native "最近打开" menu; mirrors `menu::RECENT_SLOTS`. */
-export const RECENT_MENU_SLOTS = 5;
-
 export const DEFAULT_SETTINGS: AppSettings = {
   schemaVersion: SCHEMA_VERSION,
   fontSize: 14,

@@ -11,7 +11,7 @@ import {
 import { EditorView } from '@codemirror/view';
 import { EditorSelection } from '@codemirror/state';
 
-import { HIGHLIGHT_LIMIT_BYTES, RECENT_MENU_SLOTS } from '@shared/constants';
+import { HIGHLIGHT_LIMIT_BYTES } from '@shared/constants';
 import type { Encoding, Eol, SessionState } from '@shared/types';
 import {
   confirmDiscard,
@@ -21,7 +21,6 @@ import {
   pickSavePath,
   readFile,
   revealInExplorer,
-  setRecentMenu,
   showMessage,
   writeFile,
 } from '@renderer/ipc';
@@ -50,27 +49,20 @@ export function baseName(path: string): string {
 
 let recentCache: RecentEntry[] = [];
 
+/** The list lives in the UI store so the File menu re-renders as it changes. */
 export function setRecentCache(list: RecentEntry[]): void {
   recentCache = list;
-  void syncRecentMenu();
+  useUi.setState({ recent: list });
 }
 
 export function getRecentCache(): RecentEntry[] {
   return recentCache;
 }
 
-/** Pushes the newest names into the native "最近打开" submenu. */
-async function syncRecentMenu(): Promise<void> {
-  await setRecentMenu(
-    recentCache.slice(0, RECENT_MENU_SLOTS).map((entry) => ({ name: entry.name })),
-  );
-}
-
 async function recordRecent(path: string, name: string): Promise<void> {
   const limit = useSettings.getState().settings.recentLimit;
-  recentCache = pushRecent(recentCache, path, name, limit);
+  setRecentCache(pushRecent(recentCache, path, name, limit));
   await saveRecent(recentCache);
-  await syncRecentMenu();
 }
 
 export function isBigFile(sizeBytes: number): boolean {

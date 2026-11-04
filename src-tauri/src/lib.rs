@@ -1,6 +1,5 @@
 mod commands;
 mod error;
-mod menu;
 mod services;
 
 use std::path::Path;
@@ -10,8 +9,6 @@ use tauri::{Emitter, Manager};
 
 use services::search::SearchRegistry;
 
-/// Menu clicks are forwarded to the renderer as this event, carrying a command id.
-pub const MENU_COMMAND_EVENT: &str = "menu://command";
 /// A second instance forwards the files it was launched with on this event.
 pub const OPEN_PATHS_EVENT: &str = "open://paths";
 
@@ -56,19 +53,11 @@ pub fn run() {
             commands::plugin::open_plugin_window,
             commands::state::load_state,
             commands::state::save_state,
-            commands::state::set_recent_files,
             commands::state::config_dir,
             commands::state::startup_paths,
         ])
-        .setup(|app| {
-            let (menu, recent) = menu::build(app.handle())?;
-            app.set_menu(menu)?;
-            app.manage(recent);
-            Ok(())
-        })
-        .on_menu_event(|app, event| {
-            let _ = app.emit(MENU_COMMAND_EVENT, event.id().0.clone());
-        })
+        // The menu bar is rendered by the webview (renderer/components/MenuBar.tsx)
+        // so it can follow the editor theme; a native Win32 menu cannot.
         .run(tauri::generate_context!())
         .expect("failed to start Npcc");
 }

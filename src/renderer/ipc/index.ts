@@ -142,23 +142,6 @@ export async function saveState(
   await invoke('save_state', { name, value });
 }
 
-export async function onMenuCommand(handler: (commandId: string) => void): Promise<UnlistenFn> {
-  return listen<string>('menu://command', (event) => handler(event.payload));
-}
-
-/**
- * Relabels the fixed "最近打开" slots of the native File menu. Failures are
- * swallowed: the menu is a convenience and must never block opening a file.
- */
-export async function setRecentMenu(entries: Array<{ name: string }>): Promise<void> {
-  if (!isTauri) return;
-  try {
-    await invoke('set_recent_files', { entries });
-  } catch {
-    // Ignored on purpose, see the doc comment.
-  }
-}
-
 export async function onCloseRequested(
   handler: () => boolean | Promise<boolean>,
 ): Promise<UnlistenFn> {

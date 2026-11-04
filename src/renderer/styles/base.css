@@ -166,6 +166,123 @@ select:focus {
   overflow: hidden;
 }
 
+/* ---------- menu bar ---------- */
+
+.menu-bar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: stretch;
+  height: 26px;
+  padding: 0 4px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.menu-root {
+  position: relative;
+  display: flex;
+}
+
+.menu-title {
+  margin: 2px 1px;
+  padding: 0 9px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  cursor: default;
+}
+
+.menu-title:hover,
+.menu-title.is-open {
+  background: var(--hover);
+}
+
+.menu-flyout {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 60;
+  min-width: 236px;
+  padding: 4px 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+}
+
+.menu-flyout-nested {
+  top: -5px;
+  left: calc(100% - 2px);
+}
+
+.menu-entry {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 10px 4px 4px;
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.menu-entry:hover:not(:disabled),
+.menu-entry.is-open,
+.menu-entry:focus-visible {
+  background: var(--accent);
+  color: var(--accent-fg);
+  outline: none;
+}
+
+.menu-entry:disabled {
+  opacity: 0.45;
+}
+
+.menu-check {
+  width: 15px;
+  color: var(--accent);
+  text-align: center;
+}
+
+.menu-entry:hover:not(:disabled) .menu-check,
+.menu-entry.is-open .menu-check {
+  color: inherit;
+}
+
+.menu-label {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.menu-accel {
+  color: var(--fg-muted);
+  font-size: 11px;
+}
+
+.menu-entry:hover:not(:disabled) .menu-accel,
+.menu-entry.is-open .menu-accel {
+  color: inherit;
+}
+
+.menu-separator {
+  height: 1px;
+  margin: 4px 0;
+  background: var(--border);
+}
+
+/* Dragging the selection: the pointer is captured in the editor, so the whole
+   window has to show the move cursor until the drop. */
+body.cm-text-dragging,
+body.cm-text-dragging * {
+  cursor: grabbing !important;
+}
+
 /* ---------- tab bar ---------- */
 
 .tab-bar {

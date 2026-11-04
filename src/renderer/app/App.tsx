@@ -12,14 +12,14 @@ import {
   restoreDocuments,
   setRecentCache,
 } from '@renderer/app/actions';
-import { runCommand } from '@renderer/app/commands';
 import { startPluginBridge } from '@renderer/app/pluginBridge';
 import { loadRecent, loadSession, saveSession } from '@renderer/app/session';
+import { installShortcuts } from '@renderer/app/shortcuts';
 import { applyUiTheme } from '@renderer/editor/theme';
 import {
+  describeError,
   isTauri,
   onCloseRequested,
-  onMenuCommand,
   onOpenPaths,
   saveState,
   startupPaths,
@@ -33,6 +33,7 @@ import { DiffPanel } from '../components/DiffPanel';
 import { FindPanel } from '../components/FindPanel';
 import { FindResultsPanel } from '../components/FindResultsPanel';
 import { GotoLineDialog } from '../components/GotoLineDialog';
+import { MenuBar } from '../components/MenuBar';
 import { PluginsDialog } from '../components/PluginsDialog';
 import { SearchPanel } from '../components/SearchPanel';
 import { SettingsDialog } from '../components/SettingsDialog';
@@ -89,21 +90,9 @@ export function App() {
     applyUiTheme(settings.theme);
   }, [settings.theme]);
 
-  // 4. Native menu items only forward ids; the renderer owns the behaviour.
-  useEffect(() => {
-    let unlisten: UnlistenFn | null = null;
-    let disposed = false;
-    void onMenuCommand((commandId) => {
-      void runCommand(commandId);
-    }).then((fn) => {
-      if (disposed) fn();
-      else unlisten = fn;
-    });
-    return () => {
-      disposed = true;
-      unlisten?.();
-    };
-  }, []);
+  // 4. Native menu accelerators used to live in the menu bar; the bar is drawn
+  // by the renderer now, so its key table is installed here.
+  useEffect(() => installShortcuts(), []);
 
   // 5. A second instance forwards the files it was launched with.
   useEffect(() => {
@@ -207,6 +196,8 @@ export function App() {
   }, []);
 
   // 9. Close guard: snapshot the session, confirm unsaved tabs, then persist.
+  // The snapshot is written first so a save prompt that the user cancels -- or
+  // an I/O error -- still leaves the next launch with the same tabs.
   useEffect(() => {
     if (!isTauri) return;
     let unlisten: UnlistenFn | null = null;
@@ -214,15 +205,21 @@ export function App() {
     void onCloseRequested(async () => {
       if (closingRef.current) return true;
       closingRef.current = true;
-      const snapshot = buildSessionState();
-      const canClose = await closeAllDocuments();
-      if (!canClose) {
+      try {
+        await saveSession(buildSessionState());
+        const canClose = await closeAllDocuments();
+        if (!canClose) {
+          closingRef.current = false;
+          return false;
+        }
+        await saveState('settings', useSettings.getState().settings);
+        return true;
+      } catch (error) {
+        // Never trap the user inside a window whose exit guard failed.
+        useUi.getState().setStatusMessage(`退出时保存失败：${describeError(error)}`);
         closingRef.current = false;
-        return false;
+        return true;
       }
-      await saveSession(snapshot);
-      await saveState('settings', useSettings.getState().settings);
-      return true;
     }).then((fn) => {
       if (disposed) fn();
       else unlisten = fn;
@@ -270,6 +267,7 @@ export function App() {
 
   return (
     <div className="app">
+      <MenuBar />
       <TabBar />
       <div className="editor-area">
         {docs.length === 0 ? <WelcomePane /> : <EditorPane />}

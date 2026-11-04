@@ -5,6 +5,8 @@ dist/
 # Rust / Tauri build artefacts
 src-tauri/target/
 src-tauri/gen/
+# 构建时由 scripts/sign-build.ps1 生成，含本机证书指纹
+src-tauri/tauri.signing.json
 
 # Editor and OS noise
 .vscode/
