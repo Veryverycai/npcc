@@ -6,7 +6,7 @@ Rust 侧负责全部文件系统访问、编码探测/转换、跨文件搜索�
 ## 下载
 
 Windows x64 安装包见 [Releases](https://github.com/Veryverycai/npcc/releases)：
-`Npcc_0.1.2_x64-setup.exe`（NSIS，按当前用户安装）或 `Npcc_0.1.2_x64_en-US.msi`。
+`Npcc_0.1.3_x64-setup.exe`（NSIS，按当前用户安装）或 `Npcc_0.1.3_x64_en-US.msi`。
 
 ## 安装、升级与卸载
 
@@ -35,7 +35,7 @@ Windows x64 安装包见 [Releases](https://github.com/Veryverycai/npcc/releases
 - 文件拖入窗口即打开，带落区提示，可一次拖入多个；第二实例与命令行参数也会开成标签。
 - 关闭窗口即保存会话（含未命名草稿），下次启动恢复上次的标签、光标与活动文档。
 - 选中文字可直接拖到文档内别的行；菜单栏由渲染层绘制，跟随当前配色模板。
-- 标题栏显示运行版本（`Npcc 0.1.2`），「帮助 → 关于」读的是同一个运行时版本，报 bug 截图即可看出是哪个构建。
+- 标题栏显示运行版本（`Npcc 0.1.3`），「帮助 → 关于」读的是同一个运行时版本，报 bug 截图即可看出是哪个构建。
 - 「文件 → 最近打开」默认列 5 条（设置里可调到 50），欢迎页同步展示最近文件；列表存在 `recent.json`。
 - 查找面板可「本文档全部」或「打开的文档全部」，结果在编辑器下方分屏列出（可拖动边界调高），
   点击行号即跳转；菜单项为「搜索 → 在本文档 / 在所有打开文档中查找全部」（前者 `Ctrl+Shift+E`）。
@@ -127,8 +127,16 @@ src-tauri/               Rust core
   src/commands/          对前端暴露的白名单命令
   src/services/          编码、EOL、搜索、持久化、插件扫描
   capabilities/          最小权限集（default 给主窗口，plugin 给插件窗口）
+  icons/                 应用图标（npcc1024.png 是母版，其余由它生成）
 examples/hello-plugin/   声明式插件清单示例
 scripts/with-msvc.ps1    带 MSVC 环境变量执行任意命令
+```
+
+图标全部由 `src-tauri/icons/npcc1024.png` 生成，换图后重跑一次即可（会重写
+`icon.ico` / `icon.icns` / 各尺寸 PNG，`npcc.exe`、安装包与 MSI 在下次构建时跟着换）：
+
+```powershell
+npx.cmd tauri icon src-tauri/icons/npcc1024.png -o src-tauri/icons
 ```
 
 ## 数据与安全
