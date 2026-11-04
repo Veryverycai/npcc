@@ -6,17 +6,25 @@ Rust 侧负责全部文件系统访问、编码探测/转换、跨文件搜索�
 ## 下载
 
 Windows x64 安装包见 [Releases](https://github.com/Veryverycai/npcc/releases)：
-`Npcc_0.1.1_x64-setup.exe`（NSIS，按当前用户安装）或 `Npcc_0.1.1_x64_en-US.msi`。
+`Npcc_0.1.2_x64-setup.exe`（NSIS，按当前用户安装）或 `Npcc_0.1.2_x64_en-US.msi`。
 
-## 安装与升级
+## 安装、升级与卸载
 
 - NSIS 安装包按当前用户装到 `%LOCALAPPDATA%\Npcc`，不需要管理员权限。
-- 安装新版本时会先静默卸载旧版本再装新文件（`src-tauri/windows/hooks.nsh` 的
-  `NSIS_HOOK_PREINSTALL`：跑旧 `uninstall.exe /S _?=$INSTDIR`，随后清空旧目录）。这样旧 exe、
-  旧插件 DLL 与旧图标资源不会残留，Explorer 也不会继续显示缓存里的旧图标。MSI 走 WiX 的
-  `MajorUpgrade`，效果相同。
+- 升级先把正在运行的实例关掉（`NSIS_HOOK_PREINSTALL` 里的 RestartManager，静默安装直接结束
+  进程），再跑旧 `uninstall.exe /S _?=$INSTDIR /NPCC_UPGRADE`，最后清空旧目录。顺序不能换：
+  正在运行的 `npcc.exe` 删不掉，不先关进程，卸载会静默失败，快捷方式继续指向旧版本。
+- 清完目录会检查 `npcc.exe` 是否真的没了，还在就报错终止安装，而不是把旧 exe 再装一遍
+  （「装了新版，跑起来还是旧版」就是这么来的）。`/NPCC_UPGRADE` 只是告诉卸载器「这是升级，
+  别动 WebView2 缓存」。
 - 用户数据（`settings.json` / `session.json` / `recent.json`）在 `%APPDATA%\com.npcc.app`，
-  不在安装目录里，升级不会丢。
+  不在安装目录里，升级不会丢。MSI 走 WiX 的 `MajorUpgrade`，同样会替换旧文件。
+- 卸载（NSIS）会清掉安装目录、开始菜单与桌面快捷方式、控制面板条目，以及
+  `%LOCALAPPDATA%\com.npcc.app`（WebView2 缓存，几百个文件）、`HKCU\Software\Npcc`
+  （安装位置与安装语言）这些原版脚本不管的尾巴。
+- 只有 `%APPDATA%\com.npcc.app` 会保留，它装的是设置、会话和未命名草稿。要连它一起清，用交互式
+  卸载并勾上「删除应用数据」；静默卸载（`/S`）没人可问，按保留处理。MSI 卸载不清 WebView2
+  缓存，需要时手动删 `%LOCALAPPDATA%\com.npcc.app`。
 
 ## 功能速览
 
