@@ -123,3 +123,21 @@ export const useDocs = create<DocsStore>((set, get) => ({
 export function nextUntitledName(counter: number): string {
   return counter === 0 ? '新建文件' : `新建文件 ${counter}`;
 }
+
+export interface UntitledTab {
+  counter: number;
+  name: string;
+}
+
+/**
+ * Next untitled name, skipping the ones an open tab already owns. A draft
+ * restored from the previous session keeps the name it was stored with, so the
+ * counter on its own would hand a second tab the same label -- two tabs called
+ * 新建文件, and the saved one looked as if its name had not changed.
+ */
+export function nextUntitled(counter: number, takenNames: string[]): UntitledTab {
+  const taken = new Set(takenNames);
+  let next = counter;
+  while (taken.has(nextUntitledName(next))) next += 1;
+  return { counter: next, name: nextUntitledName(next) };
+}

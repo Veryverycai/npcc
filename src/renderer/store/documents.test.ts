@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { nextUntitledName, useDocs } from './documents';
+import { nextUntitled, nextUntitledName, useDocs } from './documents';
 
 const baseInput = {
   path: null,
@@ -81,5 +81,17 @@ describe('documents store', () => {
   it('numbers untitled documents', () => {
     expect(nextUntitledName(0)).toBe('新建文件');
     expect(nextUntitledName(3)).toBe('新建文件 3');
+  });
+
+  it('skips untitled names an open tab already owns', () => {
+    expect(nextUntitled(0, [])).toEqual({ counter: 0, name: '新建文件' });
+    // A draft restored from the session keeps its old name at counter 0.
+    expect(nextUntitled(0, ['新建文件'])).toEqual({ counter: 1, name: '新建文件 1' });
+    expect(nextUntitled(1, ['新建文件', '新建文件 1'])).toEqual({
+      counter: 2,
+      name: '新建文件 2',
+    });
+    // Saved tabs carry file names, so they never block the counter.
+    expect(nextUntitled(0, ['a.txt', 'b.txt'])).toEqual({ counter: 0, name: '新建文件' });
   });
 });

@@ -36,11 +36,11 @@ import {
   getStoredState,
   storeState,
 } from '@renderer/editor/stateRegistry';
-import { nextUntitledName, useDocs } from '@renderer/store/documents';
+import { nextUntitled, useDocs } from '@renderer/store/documents';
 import { useSettings } from '@renderer/store/settings';
 import { useUi } from '@renderer/store/ui';
 import type { RecentEntry } from '@shared/types';
-import { pushRecent, saveRecent } from './session';
+import { pushRecent, saveRecent, saveSession } from './session';
 
 export function baseName(path: string): string {
   const parts = path.split(/[\\/]/);
@@ -71,8 +71,10 @@ export function isBigFile(sizeBytes: number): boolean {
 
 export function createNewFile(): void {
   const settings = useSettings.getState().settings;
-  const counter = useDocs.getState().untitledCounter;
-  const name = nextUntitledName(counter);
+  const { counter, name } = nextUntitled(
+    useDocs.getState().untitledCounter,
+    useDocs.getState().docs.map((doc) => doc.name),
+  );
   const doc = useDocs.getState().add({
     path: null,
     name,
@@ -229,6 +231,9 @@ export async function saveDocument(docId: string, saveAs = false): Promise<boole
       mtimeMs: result.mtimeMs,
     });
     await recordRecent(result.path, name);
+    // The crash snapshot still describes an untitled draft; refresh it so a
+    // hard exit cannot bring the draft back beside the file it was saved as.
+    void saveSession(buildSessionState());
     if (result.hadErrors) {
       await showMessage(
         `部分字符无法用 ${doc.encoding} 表示，已写入替代字符。建议改用 UTF-8。`,
@@ -251,16 +256,21 @@ export async function saveActiveDocument(saveAs = false): Promise<boolean> {
 export async function closeDocument(docId: string): Promise<boolean> {
   const doc = useDocs.getState().docs.find((item) => item.id === docId);
   if (!doc) return true;
+  let discarded = false;
   if (doc.dirty) {
     const choice = await confirmDiscard(doc.name);
     if (choice === 'cancel') return false;
     if (choice === 'save') {
       const saved = await saveDocument(docId);
       if (!saved) return false;
+    } else {
+      discarded = true;
     }
   }
   dropState(docId);
   useDocs.getState().remove(docId);
+  // A draft the user threw away must not come back from the crash snapshot.
+  if (discarded && doc.path === null) void saveSession(buildSessionState());
   return true;
 }
 
