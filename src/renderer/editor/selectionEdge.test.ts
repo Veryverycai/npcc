@@ -24,6 +24,15 @@ describe('caretLineInSelection', () => {
 
   it('works for backwards selections too', () => {
     const doc = 'one\ntwo\n';
-    expect(caretLineInSelection(stateOf(doc, doc.length, 0))).toBe(0);
+    // The empty line the selection reaches sits at the other end now.
+    expect(caretLineInSelection(stateOf(doc, doc.length, 0))).toBe(8);
+  });
+
+  it('never tints the line a selection selects the text of', () => {
+    // Dragging upward from gamma to column one of the padded first line: that
+    // line shows its own selected characters, and tinting it would paint the
+    // whole row as if the padding behind "alpha" were part of the selection.
+    const doc = 'alpha    \nbeta\ngamma\n';
+    expect(caretLineInSelection(stateOf(doc, 15, 0))).toBeNull();
   });
 });

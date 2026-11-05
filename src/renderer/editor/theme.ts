@@ -405,7 +405,7 @@ export function editorTheme(settings: AppSettings): Extension {
           backgroundColor: spec.selection,
         },
         '.cm-activeLine': { backgroundColor: spec.activeLine },
-        // Keeps the caret line tinted when the selection stops at its start
+        // Keeps an empty line that a selection reaches from looking untouched
         // (see selectionEdge); declared after .cm-activeLine to win over it.
         '.cm-caret-line-selected': { backgroundColor: spec.selection },
         // Secondary ranges and carets of a multi-cursor state (multiRangePaint).
