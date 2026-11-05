@@ -10,24 +10,20 @@ import {
 const caretLine = Decoration.line({ class: 'cm-caret-line-selected' });
 
 /**
- * The browser only paints the characters a selection covers, so an empty line
- * that the selection reaches stays untouched: Ctrl+A on a file ending with a
- * newline left the last, empty line looking unselected.
+ * The browser only paints the characters a selection covers, so Ctrl+A on a file
+ * that ends with a newline leaves the last, empty line looking untouched. That
+ * one case is what the tint is for, and the row is filled in by hand only when
+ * the whole document is selected.
  *
- * A line that holds text needs no help -- its characters are painted anyway --
- * and tinting it painted the whole row past the last character. Selecting
- * upward ends on column one of the line above, so that row showed a band all
- * the way across, as if the padding behind the text had been selected too.
- * Only an empty line at either end of the selection gets the tint.
+ * Filling any other row was wrong: a line decoration paints the full width, so
+ * a selection reaching the start of a line -- which is where a selection made
+ * upwards always ends -- made that line look as if the padding behind its text
+ * had been selected too, and reaching the empty last line did the same.
  */
 export function caretLineInSelection(state: EditorState): number | null {
   const range = state.selection.main;
-  if (range.empty) return null;
-  return emptyLineAt(state, range.from) ?? emptyLineAt(state, range.to);
-}
-
-function emptyLineAt(state: EditorState, pos: number): number | null {
-  const line = state.doc.lineAt(pos);
+  if (range.from !== 0 || range.to !== state.doc.length) return null;
+  const line = state.doc.lineAt(range.to);
   return line.length === 0 ? line.from : null;
 }
 
@@ -36,7 +32,7 @@ function decorationsFor(state: EditorState): DecorationSet {
   return position == null ? Decoration.none : RangeSet.of([caretLine.range(position)]);
 }
 
-/** Tints an empty line that a selection reaches, so it does not look untouched. */
+/** Fills in the empty last line a select-all reaches, so it does not look untouched. */
 export function selectionEdge(): Extension {
   return ViewPlugin.fromClass(
     class {

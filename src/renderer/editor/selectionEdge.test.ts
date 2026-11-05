@@ -29,10 +29,16 @@ describe('caretLineInSelection', () => {
   });
 
   it('never tints the line a selection selects the text of', () => {
-    // Dragging upward from gamma to column one of the padded first line: that
-    // line shows its own selected characters, and tinting it would paint the
-    // whole row as if the padding behind "alpha" were part of the selection.
+    // Dragging from gamma up to column one of the padded first line: that line
+    // shows its own selected characters, and filling the row would make the
+    // padding behind "alpha" look selected as well.
     const doc = 'alpha    \nbeta\ngamma\n';
     expect(caretLineInSelection(stateOf(doc, 15, 0))).toBeNull();
+  });
+
+  it('leaves the last line alone when a selection stops there', () => {
+    // Dragging down past the end of the file ends on the empty last line;
+    // filling that row would look like the whole line got selected.
+    expect(caretLineInSelection(stateOf('alpha\nbeta\n', 6, 11))).toBeNull();
   });
 });

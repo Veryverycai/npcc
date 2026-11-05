@@ -405,9 +405,13 @@ export function editorTheme(settings: AppSettings): Extension {
           backgroundColor: spec.selection,
         },
         '.cm-activeLine': { backgroundColor: spec.activeLine },
-        // Keeps an empty line that a selection reaches from looking untouched
-        // (see selectionEdge); declared after .cm-activeLine to win over it.
-        '.cm-caret-line-selected': { backgroundColor: spec.selection },
+        // Marks the empty last line a select-all reaches (see selectionEdge). A
+        // block at the line start instead of a filled row: filling it read as
+        // "the whole line, padding included, got selected". Declared after
+        // .cm-activeLine so the block sits on top of the active-line tint.
+        '.cm-caret-line-selected': {
+          backgroundImage: `linear-gradient(to right, ${spec.selection} 6px, transparent 6px)`,
+        },
         // Secondary ranges and carets of a multi-cursor state (multiRangePaint).
         '.cm-secondary-range': { backgroundColor: spec.selection },
         '.cm-secondary-caret': {
