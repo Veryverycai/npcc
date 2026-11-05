@@ -27,6 +27,7 @@ import type { AppSettings } from '@shared/types';
 import { bookmarkExtension } from './bookmarks';
 import { findExtension } from './find';
 import { languageExtension } from './languages';
+import { lineSelect } from './lineSelect';
 import { multiCursorExtension } from './multicursor';
 import { multiRangePaint } from './multiRangePaint';
 import { overwriteExtension } from './overwrite';
@@ -90,6 +91,7 @@ function baseExtensions(settings: AppSettings, bigFile: boolean): Extension[] {
     multiRangePaint(),
     overwriteExtension(),
     textDrag(),
+    lineSelect(),
     selectionEdge(),
     updateBridge,
     keymap.of([
