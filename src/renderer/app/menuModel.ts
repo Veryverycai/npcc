@@ -233,7 +233,11 @@ export function menuModel(state: MenuState): MenuGroup[] {
     },
     {
       label: '帮助',
-      items: [item('help.about', '关于 Npcc')],
+      items: [
+        item('help.license', '开源许可（MIT）'),
+        separator,
+        item('help.about', '关于 Npcc'),
+      ],
     },
   ];
 }

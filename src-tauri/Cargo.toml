@@ -1,6 +1,6 @@
 [package]
 name = "npcc"
-version = "0.1.7"
+version = "0.1.8"
 description = "Npcc - a lightweight Notepad++-like text editor"
 authors = ["npcc"]
 edition = "2021"

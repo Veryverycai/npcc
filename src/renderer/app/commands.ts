@@ -61,6 +61,32 @@ const REOPEN_COMMANDS: Record<string, Encoding> = {
 };
 
 /**
+ * The text shipped in LICENSE, verbatim: the Help entry shows the license
+ * itself instead of pointing at a file the user may not have.
+ */
+const MIT_LICENSE = `MIT License
+
+Copyright (c) 2026 Veryverycai
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.`;
+
+/**
  * Every user-visible command funnels through here, so the native menu, the
  * in-app menu and the shortcut table share one implementation.
  */
@@ -282,18 +308,21 @@ export async function runCommand(commandId: string): Promise<void> {
       await showMessage(
         [
           `Npcc ${version || 'dev'}`,
-          '轻量文本编辑器（Tauri 2 + React + CodeMirror 6）',
+          '轻量文本编辑器',
+          '作者：Verycai',
           '',
           `默认编码 ${DEFAULT_SETTINGS.encoding.toUpperCase()}，默认换行 ${DEFAULT_SETTINGS.eol.toUpperCase()}`,
           '设置与最近文件保存在应用配置目录。',
           '',
-          '初衷：Notepad++ 的作者作恶 —— SB 无脑黑 + 反华，那就再造一个轮子。',
-          '所以有了 Npcc：Tauri 2 + React 19 + CodeMirror 6，自己的编辑器自己写。',
+          '初衷：npp作者SB行为，迫使我自己手搓一个轮子。',
         ].join('\n'),
         '关于 Npcc',
       );
       return;
     }
+    case 'help.license':
+      await showMessage(MIT_LICENSE, '开源许可');
+      return;
     default:
       // Unknown ids are ignored: a stale menu item should never crash the UI.
       return;
